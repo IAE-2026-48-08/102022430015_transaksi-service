@@ -1,0 +1,14 @@
+type Query {
+    transactions: [Transaction!]! @all
+    transactionsByAccount(account_id: String! @eq): [Transaction!]! @all
+}
+
+type Transaction {
+    id: ID!
+    account_id: String!
+    type: String!
+    amount: Float!
+    description: String
+    reference_number: String
+    transaction_date: String
+}
