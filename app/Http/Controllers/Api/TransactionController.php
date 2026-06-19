@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\Repayment;
+use App\Services\SsoService;
+use App\Services\SoapAuditService;
+use App\Services\RabbitMQService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -25,35 +28,20 @@ use Illuminate\Support\Str;
  */
 class TransactionController extends Controller
 {
+    public function __construct(
+        private SsoService $ssoService,
+        private SoapAuditService $soapAuditService,
+        private RabbitMQService $rabbitMQService,
+    ) {}
+
     /**
      * @OA\Get(
      *     path="/api/v1/transactions",
      *     summary="Ambil daftar semua transaksi",
      *     tags={"Transactions"},
      *     security={{"ApiKeyAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Daftar transaksi berhasil diambil",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string", example="Data retrieved successfully"),
-     *             @OA\Property(property="data", type="array", @OA\Items(
-     *                 @OA\Property(property="id", type="integer"),
-     *                 @OA\Property(property="account_id", type="string"),
-     *                 @OA\Property(property="type", type="string", enum={"credit","debit"}),
-     *                 @OA\Property(property="amount", type="number"),
-     *                 @OA\Property(property="description", type="string"),
-     *                 @OA\Property(property="reference_number", type="string"),
-     *                 @OA\Property(property="transaction_date", type="string")
-     *             )),
-     *             @OA\Property(property="meta", type="object",
-     *                 @OA\Property(property="service_name", type="string", example="Transaction-Service"),
-     *                 @OA\Property(property="api_version", type="string", example="v1"),
-     *                 @OA\Property(property="total", type="integer")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized - X-IAE-KEY tidak valid")
+     *     @OA\Response(response=200, description="Daftar transaksi berhasil diambil"),
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     public function index()
@@ -78,24 +66,9 @@ class TransactionController extends Controller
      *     summary="Ambil riwayat transaksi milik nasabah tertentu",
      *     tags={"Transactions"},
      *     security={{"ApiKeyAuth":{}}},
-     *     @OA\Parameter(
-     *         name="account_id",
-     *         in="path",
-     *         required=true,
-     *         description="ID rekening nasabah",
-     *         @OA\Schema(type="string", example="ACC-001")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Riwayat transaksi nasabah berhasil diambil",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="meta", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Transaksi tidak ditemukan untuk akun ini"),
+     *     @OA\Parameter(name="account_id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Riwayat transaksi berhasil diambil"),
+     *     @OA\Response(response=404, description="Transaksi tidak ditemukan"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
@@ -132,23 +105,8 @@ class TransactionController extends Controller
      *     summary="Cek riwayat pembayaran cicilan nasabah",
      *     tags={"Repayments"},
      *     security={{"ApiKeyAuth":{}}},
-     *     @OA\Parameter(
-     *         name="account_id",
-     *         in="path",
-     *         required=true,
-     *         description="ID rekening nasabah",
-     *         @OA\Schema(type="string", example="ACC-001")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Riwayat cicilan berhasil diambil",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="meta", type="object")
-     *         )
-     *     ),
+     *     @OA\Parameter(name="account_id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Riwayat cicilan berhasil diambil"),
      *     @OA\Response(response=404, description="Data cicilan tidak ditemukan"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
@@ -195,17 +153,8 @@ class TransactionController extends Controller
      *             @OA\Property(property="installment_number", type="integer", example=3)
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Pembayaran cicilan berhasil dieksekusi",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string", example="Repayment processed successfully"),
-     *             @OA\Property(property="data", type="object"),
-     *             @OA\Property(property="meta", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Data cicilan tidak ditemukan atau sudah terbayar"),
+     *     @OA\Response(response=201, description="Pembayaran cicilan berhasil"),
+     *     @OA\Response(response=404, description="Data cicilan tidak ditemukan"),
      *     @OA\Response(response=422, description="Validasi gagal"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
@@ -249,17 +198,90 @@ class TransactionController extends Controller
             'transaction_date' => now(),
         ]);
 
+        // Ambil JWT token dari SSO
+        $token = $this->ssoService->getM2MToken();
+
+        // Kirim SOAP Audit
+        $auditData = [
+            'account_id'         => $validated['account_id'],
+            'amount'             => $validated['repayment_amount'],
+            'installment_number' => $validated['installment_number'],
+            'reference_number'   => $transaction->reference_number,
+            'type'               => 'repayment',
+        ];
+        $auditResult = $this->soapAuditService->sendAudit($auditData, $token);
+
+        // Broadcast ke RabbitMQ
+        $this->rabbitMQService->publish('repayment.processed', [
+            'account_id'      => $validated['account_id'],
+            'amount'          => $validated['repayment_amount'],
+            'reference_number'=> $transaction->reference_number,
+            'receipt_number'  => $auditResult['receipt_number'] ?? null,
+        ], $token);
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Repayment processed successfully',
             'data'    => [
-                'repayment'   => $repayment->fresh(),
-                'transaction' => $transaction,
+                'repayment'      => $repayment->fresh(),
+                'transaction'    => $transaction,
+                'audit_receipt'  => $auditResult['receipt_number'] ?? null,
             ],
             'meta'    => [
                 'service_name' => 'Transaction-Service',
                 'api_version'  => 'v1',
             ],
         ], 201);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/login",
+     *     summary="Login nasabah via SSO",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", example="warga15@ktp.iae.id"),
+     *             @OA\Property(property="password", type="string", example="KtpDigital2026!")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Login berhasil"),
+     *     @OA\Response(response=401, description="Kredensial tidak valid")
+     * )
+     */
+    public function login(Request $request)
+    {
+        $validated = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $result = $this->ssoService->loginUser(
+            $validated['email'],
+            $validated['password']
+        );
+
+        if (!isset($result['token'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid credentials',
+                'errors'  => null,
+            ], 401);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Login successful',
+            'data'    => [
+                'token'      => $result['token'],
+                'token_type' => $result['token_type'] ?? 'Bearer',
+            ],
+            'meta'    => [
+                'service_name' => 'Transaction-Service',
+                'api_version'  => 'v1',
+            ],
+        ], 200);
     }
 }

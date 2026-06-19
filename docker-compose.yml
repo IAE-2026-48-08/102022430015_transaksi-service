@@ -15,6 +15,7 @@ services:
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
+      - APP_KEY=base64:oxtyGfbAXtDFjQ331c7uWS5TH/xD7zAFtkc5X79hKnw=
 
   webserver:
     image: nginx:alpine

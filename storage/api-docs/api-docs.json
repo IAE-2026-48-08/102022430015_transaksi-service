@@ -24,76 +24,10 @@
                 "operationId": "7982071b501714798015d3493437d591",
                 "responses": {
                     "200": {
-                        "description": "Daftar transaksi berhasil diambil",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Data retrieved successfully"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "account_id": {
-                                                        "type": "string"
-                                                    },
-                                                    "type": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "credit",
-                                                            "debit"
-                                                        ]
-                                                    },
-                                                    "amount": {
-                                                        "type": "number"
-                                                    },
-                                                    "description": {
-                                                        "type": "string"
-                                                    },
-                                                    "reference_number": {
-                                                        "type": "string"
-                                                    },
-                                                    "transaction_date": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
-                                            "properties": {
-                                                "service_name": {
-                                                    "type": "string",
-                                                    "example": "Transaction-Service"
-                                                },
-                                                "api_version": {
-                                                    "type": "string",
-                                                    "example": "v1"
-                                                },
-                                                "total": {
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Daftar transaksi berhasil diambil"
                     },
                     "401": {
-                        "description": "Unauthorized - X-IAE-KEY tidak valid"
+                        "description": "Unauthorized"
                     }
                 },
                 "security": [
@@ -114,45 +48,18 @@
                     {
                         "name": "account_id",
                         "in": "path",
-                        "description": "ID rekening nasabah",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "example": "ACC-001"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Riwayat transaksi nasabah berhasil diambil",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Riwayat transaksi berhasil diambil"
                     },
                     "404": {
-                        "description": "Transaksi tidak ditemukan untuk akun ini"
+                        "description": "Transaksi tidak ditemukan"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -176,42 +83,15 @@
                     {
                         "name": "account_id",
                         "in": "path",
-                        "description": "ID rekening nasabah",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "example": "ACC-001"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Riwayat cicilan berhasil diambil",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "meta": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Riwayat cicilan berhasil diambil"
                     },
                     "404": {
                         "description": "Data cicilan tidak ditemukan"
@@ -265,33 +145,10 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Pembayaran cicilan berhasil dieksekusi",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Repayment processed successfully"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "meta": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Pembayaran cicilan berhasil"
                     },
                     "404": {
-                        "description": "Data cicilan tidak ditemukan atau sudah terbayar"
+                        "description": "Data cicilan tidak ditemukan"
                     },
                     "422": {
                         "description": "Validasi gagal"
@@ -305,6 +162,47 @@
                         "ApiKeyAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login nasabah via SSO",
+                "operationId": "e1d6d6ed4c4f977c06d2e6e1d9ac2d04",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "warga15@ktp.iae.id"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "KtpDigital2026!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login berhasil"
+                    },
+                    "401": {
+                        "description": "Kredensial tidak valid"
+                    }
+                }
             }
         }
     },
@@ -325,6 +223,10 @@
         {
             "name": "Repayments",
             "description": "Repayments"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
         }
     ]
 }
