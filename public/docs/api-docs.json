@@ -1,0 +1,232 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Transaction Service API",
+        "description": "IAE Tugas 2 - Mini Service untuk manajemen transaksi dan cicilan pinjaman",
+        "contact": {
+            "email": "student@telkomuniversity.ac.id"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Local Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Ambil daftar semua transaksi",
+                "operationId": "7982071b501714798015d3493437d591",
+                "responses": {
+                    "200": {
+                        "description": "Daftar transaksi berhasil diambil"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/transactions/account/{account_id}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Ambil riwayat transaksi milik nasabah tertentu",
+                "operationId": "dec217ee41dc3788adc9485545fa9192",
+                "parameters": [
+                    {
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Riwayat transaksi berhasil diambil"
+                    },
+                    "404": {
+                        "description": "Transaksi tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/transactions/repayment/{account_id}": {
+            "get": {
+                "tags": [
+                    "Repayments"
+                ],
+                "summary": "Cek riwayat pembayaran cicilan nasabah",
+                "operationId": "aeb5df0f50da43d3d4f7b11b1849837a",
+                "parameters": [
+                    {
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Riwayat cicilan berhasil diambil"
+                    },
+                    "404": {
+                        "description": "Data cicilan tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/transactions/repayment": {
+            "post": {
+                "tags": [
+                    "Repayments"
+                ],
+                "summary": "Eksekusi pembayaran cicilan pinjaman",
+                "operationId": "b55abd51a7237a798db2576bc7514af8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "account_id",
+                                    "repayment_amount",
+                                    "installment_number"
+                                ],
+                                "properties": {
+                                    "account_id": {
+                                        "type": "string",
+                                        "example": "ACC-001"
+                                    },
+                                    "repayment_amount": {
+                                        "type": "number",
+                                        "example": 1500000
+                                    },
+                                    "installment_number": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Pembayaran cicilan berhasil"
+                    },
+                    "404": {
+                        "description": "Data cicilan tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login nasabah via SSO",
+                "operationId": "e1d6d6ed4c4f977c06d2e6e1d9ac2d04",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "warga15@ktp.iae.id"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "KtpDigital2026!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login berhasil"
+                    },
+                    "401": {
+                        "description": "Kredensial tidak valid"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-IAE-KEY"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Transactions",
+            "description": "Transactions"
+        },
+        {
+            "name": "Repayments",
+            "description": "Repayments"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        }
+    ]
+}

@@ -3,7 +3,7 @@
         'name' => 'iae/transaction-service',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '761089c4e17b0bf81a6fa1a834f72269444cd6f6',
+        'reference' => '58098c32a5f634919dcd592a1bc76a98ba8ce4e8',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -157,7 +157,7 @@
         'iae/transaction-service' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '761089c4e17b0bf81a6fa1a834f72269444cd6f6',
+            'reference' => '58098c32a5f634919dcd592a1bc76a98ba8ce4e8',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
